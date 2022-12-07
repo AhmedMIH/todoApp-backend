@@ -1,0 +1,4 @@
+mongo authtodo pass qznhSdlHsP1wWHFG
+
+
+to run ther server  write in terminal  ngrok http 3000 and use the url that ganerate 
