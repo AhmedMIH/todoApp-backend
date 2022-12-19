@@ -119,7 +119,6 @@ app.put("/chanePassword", async (request, response) => {
   const token = request.headers.authorization.split(" ")[1];
   const decoded = jwt.verify(token, "RANDOM-TOKEN");
   const user = await decoded;
-  console.log(user.userId);
 
   User.findOne({ _id: user.userId })
     .then((newUser) => {
@@ -128,14 +127,11 @@ app.put("/chanePassword", async (request, response) => {
         .then((passwordCheck) => {
           if (!passwordCheck) {
             return response.status(400).send({
-              message: "Passwords does not match",
+              message: "old password is wrong",
               error,
             });
           }
           bcrypt.hash(request.body.newPassword, 10).then((hashedPassword) => {
-            console.log('request.body.newPassword',request.body.newPassword)
-            console.log("hashedPassword",hashedPassword)
-            console.log("old password",newUser.password)
             const updatedUser = User.findByIdAndUpdate(
               { _id: newUser._id },
               {
@@ -153,8 +149,8 @@ app.put("/chanePassword", async (request, response) => {
           });
         })
         .catch((error) => {
-          response.status(400).send({
-            message: "Passwords does not match",
+          response.status(401).send({
+            message: "old password is wrong",
             error,
           });
         });
@@ -172,11 +168,8 @@ app.get("/todos", async (request, response, next) => {
     const token = request.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, "RANDOM-TOKEN");
     const user = await decoded;
-    console.log(user.userId);
-
     await todoModel.find({ userId: user.userId }).then((todos)=>{
 
-      console.log(todos);
       return response.status(200).send({
         todos: todos,
       });
@@ -189,10 +182,8 @@ app.get("/todos", async (request, response, next) => {
 app.post("/add", (req, res) => {
   const token = req.headers.authorization.split(" ")[1];
   const decoded = jwt.verify(token, "RANDOM-TOKEN");
-  console.log(decoded);
   const id = decoded.userId;
   const { todo } = req.body;
-  console.log(todo);
   const newTodo = new todoModel({
     todoName: todo.name,
     todoDes: todo.description,
@@ -202,7 +193,7 @@ app.post("/add", (req, res) => {
   });
 
   if (todo == "") {
-    res.status(401).send("please enter todo info");
+    res.status(401).send({message:"please enter todo info"});
   } else {
     newTodo
       .save()
@@ -226,10 +217,8 @@ app.put("/edit", async (req, res) => {
     query: { id },
     body,
   } = req;
-  console.log("query", id);
   const { todo } = body;
-  console.log(req);
-  console.log("todo", todo);
+ 
   const updatedTodo = await todoModel
     .findByIdAndUpdate(
       { _id: id },
@@ -259,7 +248,6 @@ app.delete("/delete", async (req, res) => {
   const {
     query: { id },
   } = req;
-  console.log(req);
   const deletedTodo = await todoModel
     .findByIdAndRemove({ _id: id })
     .then((result) => {
